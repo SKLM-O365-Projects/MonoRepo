@@ -1,0 +1,1 @@
+# Azure Function that uses Microsoft Graph to sync users to O365 groups on a Daily basis (CRON Expression)
