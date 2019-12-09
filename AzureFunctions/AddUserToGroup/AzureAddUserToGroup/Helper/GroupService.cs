@@ -39,20 +39,36 @@ namespace AzureAddUserToGroup.Services
             IGraphServiceGroupsCollectionPage groups = await new GraphServiceGroupsCollectionRequestBuilder(url, graphClient).Request().GetAsync();
             if (groups?.Count > 0)
             {
-                var groupId = groups.FirstOrDefault().Id;
-                var members = await graphClient.Groups[groupId].Members.Request().GetAsync();
+                var group = groups.FirstOrDefault();
+                var getMembersUrl = @"https://graph.microsoft.com/v1.0/groups/" + group.Id + "/members";
+                var members = await new DirectoryRoleMembersCollectionWithReferencesRequestBuilder(getMembersUrl, graphClient).Request().GetAsync();
                 var filteredUserList = new List<ResultsItem>();
-                if (members?.Count > 0)
+                var membersInGroup = new List<ResultsItem>();
+                while (members?.Count > 0)
                 {
-                    foreach (var user in users)
+                    foreach (var item in members)
                     {
-                        var member = members.Where(x => x.Id == user.Id).FirstOrDefault();
-                        if (member == null)
-                        {
-                            filteredUserList.Add(user);
-                        }
+                        membersInGroup.Add(new ResultsItem() { Id = item.Id});
+                    }
+                    if (members.NextPageRequest != null)
+                    {
+                        members = await members.NextPageRequest.GetAsync();
+                    }
+                    else
+                    {
+                        members = null;
                     }
                 }
+
+                foreach (var user in users)
+                {
+                    var member = membersInGroup.Where(x => x.Id == user.Id).FirstOrDefault();
+                    if (member == null)
+                    {
+                        filteredUserList.Add(user);
+                    }
+                }
+
                 foreach (var user in filteredUserList)
                 {
 
@@ -63,7 +79,7 @@ namespace AzureAddUserToGroup.Services
                             Id = user.Id
                         };
 
-                        await graphClient.Groups[groupId].Members.References.Request().AddAsync(directoryObject);
+                        await graphClient.Groups[group.Id].Members.References.Request().AddAsync(directoryObject);
                     }
                     catch (Exception ex)
                     {
