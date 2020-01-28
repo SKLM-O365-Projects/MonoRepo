@@ -31,10 +31,10 @@ namespace AzureAddUserToGroup.Services
         }
 
 
-        public async Task<List<ResultsItem>> GetAllOfficeManagers(GraphServiceClient graphClient)
+        public async Task<List<ResultsItem>> GetAllOfficeManagers(GraphServiceClient graphClient, string jobTitle,  string country)
         {
             List<ResultsItem> items = new List<ResultsItem>();
-            var url = @"https://graph.microsoft.com/v1.0/users?$filter=jobTitle eq 'Kontorschef'";
+            var url = @"https://graph.microsoft.com/v1.0/users?$filter=jobTitle eq '"+ jobTitle +"' and country eq '"+ country + "'";
             IGraphServiceUsersCollectionPage users = await new GraphServiceUsersCollectionRequestBuilder(url, graphClient).Request().GetAsync();
             if (users?.Count > 0)
             {

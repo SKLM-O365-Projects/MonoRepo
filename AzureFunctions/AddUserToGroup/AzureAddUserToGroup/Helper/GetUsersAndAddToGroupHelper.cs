@@ -27,10 +27,32 @@ namespace AzureAddUserToGroup.Helper
         internal static async Task<bool> GetUsersAndAddToGroup(ILogger log)
         {
             GraphServiceClient graphClient = GraphHelper.GetAuthenticatedClient();
-            var users = await userService.GetAllOfficeManagers(graphClient);
-            var group = await groupsService.PutUsersInGroup(graphClient, users, "SP_Kontorschef", log);
+            var usersOfficeManagerSE = await userService.GetAllOfficeManagers(graphClient, "Kontorschef", "SE");
+            var usersOfficeManagerES = await userService.GetAllOfficeManagers(graphClient, "Kontorschef", "ES");
+            var usersFranchiseesSE = await userService.GetAllOfficeManagers(graphClient, "Franchisetagare", "SE");
+            var usersFranchiseesES = await userService.GetAllOfficeManagers(graphClient, "Franchisetagare", "ES");
 
-            var spainUsers = await userService.GetAllCountryUsers(graphClient, "Spanien");
+            if (usersOfficeManagerSE.Count != 0)
+            {
+                await groupsService.PutUsersInGroup(graphClient, usersOfficeManagerSE, "SP_Kontorschef", log);
+            }
+            if (usersOfficeManagerES.Count != 0)
+            {
+                //Byt till utlands AD grupp 
+                //await groupsService.PutUsersInGroup(graphClient, usersOfficeManagerSE, "SP_Kontorschef", log);
+            }
+            if (usersFranchiseesSE.Count != 0)
+            {
+                await groupsService.PutUsersInGroup(graphClient, usersOfficeManagerSE, "SP_Francheistagare", log);
+            }
+            if (usersFranchiseesES.Count != 0)
+            {
+                //Byt till utlands AD grupp 
+                //await groupsService.PutUsersInGroup(graphClient, usersOfficeManagerSE, "SP_Kontorschef", log);
+            }
+            //var group = await groupsService.PutUsersInGroup(graphClient, usersOfficeManagerSE, "SP_Kontorschef", log);
+
+            //var spainUsers = await userService.GetAllCountryUsers(graphClient, "Spanien");
 
             //var spainUsers = await userService.GetAllCountryUsers(graphClient, "Portugal");
             return true;
